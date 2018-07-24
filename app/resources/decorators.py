@@ -1,9 +1,10 @@
 from functools import wraps
 from flask import request
-from models import User
+from ..models import User
+
 
 def token_required(func):
-    '''checks validity of tokens'''
+
     @wraps(func)
     def decorated(*args, **kwargs):
         access_token = None
@@ -14,13 +15,15 @@ def token_required(func):
             if access_token:
                 user_id = User.decode_token(access_token)['id']
                 return func(user_id=user_id, *args, **kwargs)
-            return {'message':"Please login first, your session might have expired"}, 401
+            return {'message': "Please login first, your session might have expired"}, 401
         except Exception as e:
-            return {'message': 'An error occured while decoding token.', 'error':str(e)},400
+            return {'message': 'An error occurred while decoding token.', 'error': str(e)}, 400
+
     return decorated
 
+
 def is_blank(var):
-    '''checks if any required field is blank'''
+    
     if var.strip() == '':
         return 'All fields are required'
     return None
