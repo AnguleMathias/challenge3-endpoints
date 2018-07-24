@@ -4,11 +4,12 @@ from flask_restful import Resource, reqparse
 from app.models import Entry
 from app.decorators import token_required, is_blank
 
+
 class EntryResource(Resource):
-    '''Resource for diary entries'''
+    """Resource for diary entries"""
     parser = reqparse.RequestParser()
-    parser.add_argument('title', required = True, type=str, help='Title cannot be blank')
-    parser.add_argument('description', required = True, type=str, help='Description cannot be blank')
+    parser.add_argument('title', required=True, type=str, help='Title cannot be blank')
+    parser.add_argument('description', required=True, type=str, help='Description cannot be blank')
 
     @token_required
     def post(self, user_id):
@@ -18,9 +19,9 @@ class EntryResource(Resource):
 
         if is_blank(title) or is_blank(description):
             return {'message': 'All fields are required'}, 400
-        entry =  Entry(title=title, user_id=user_id, description=description)
+        entry = Entry(title=title, user_id=user_id, description=description)
         entry = entry.save()
-        return {'message': 'Entry has been published', 'entry': entry}, 201
+        return {'message': 'Entry added', 'entry': entry}, 201
 
     @token_required
     def get(self, user_id, entry_id=None):
@@ -33,7 +34,7 @@ class EntryResource(Resource):
         return {'message': 'Entries found', 'entries': [user_entry[entry].view() for entry in user_entry]}, 200
 
     @token_required
-    def put(self,user_id, entry_id):
+    def put(self, user_id, entry_id):
         entry = Entry.get(user_id=user_id, id=entry_id)
         if isinstance(entry, dict):
             return entry, 404
@@ -45,14 +46,14 @@ class EntryResource(Resource):
             data.update({'title': title})
         if description and is_blank(description) != '':
             data.update({'description': description})
-        
+
         entry = entry.update(data=data)
         return {'message': 'Entry updated successfully', 'new_entry': entry}, 200
 
     @token_required
     def delete(self, user_id, entry_id):
         user_entry = Entry.get(user_id=user_id, id=entry_id)
-        if isinstance (user_entry, Entry):
+        if isinstance(user_entry, Entry):
             user_entry.delete()
             return {"message": "Entry has been deleted"}, 200
-        return {"message": "Entry does not exist"}, 404 
+        return {"message": "Entry does not exist"}, 404
