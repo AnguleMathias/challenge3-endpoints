@@ -1,9 +1,4 @@
 # challenge3-endpoints
-<<<<<<< HEAD
-
-=======
-# MyDiary_AnguleMathias
->>>>>>> 2b391bb3e68803489053217770e381bf69f3dff5
 
 ## Introduction
 
