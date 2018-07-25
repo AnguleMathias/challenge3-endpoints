@@ -1,6 +1,6 @@
-from app.decorators import token_required, is_blank
+from .decorators import token_required, is_blank
 from flask import request
-from flask_restful import Resource, reqparse
+from flask import Resource, reqparse
 
 from app.models import Entry
 

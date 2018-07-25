@@ -3,7 +3,7 @@ import re
 from flask_restful import Resource, reqparse
 
 from app.models import User
-from decorators import is_blank
+from .decorators import is_blank
 
 
 def post():
