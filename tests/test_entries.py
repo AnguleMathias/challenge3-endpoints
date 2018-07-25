@@ -59,21 +59,6 @@ def test_get_all_entries(self):
     self.assertEqual(result["message"], "Entries found")
 
 
-def test_delete_entry(self):
-    """Test API can delete a diary entry"""
-    response = self.logged_in_user()
-    token = json.loads(response.data.decode('utf-8'))['token']
-    headers = {'Authorization': 'Bearer {}'.format(token)}
-
-    response = self.client.post(ADD_ENTRY_URL, headers=headers,
-                                data=json.dumps(self.entry_data), content_type='application/json')
-    self.assertEqual(response.status_code, 201)
-
-    response = self.client.delete(DELETE_URL, headers=headers,
-                                  data=json.dumps(self.entry_data), content_type='application/json')
-    self.assertEqual(response.status_code, 200)
-
-
 def test_modify_entry(self):
     """Test API can modify a diary entry"""
     response = self.logged_in_user()
@@ -122,3 +107,18 @@ def test_cannot_get_all_entries_without_login(self):
     response = self.client.get(GET_ALL_URL,
                                data=json.dumps(self.entry_data), content_type='application/json')
     self.assertEqual(response.status_code, 401)
+
+
+def test_delete_entry(self):
+    """Test API can delete a diary entry"""
+    response = self.logged_in_user()
+    token = json.loads(response.data.decode('utf-8'))['token']
+    headers = {'Authorization': 'Bearer {}'.format(token)}
+
+    response = self.client.post(ADD_ENTRY_URL, headers=headers,
+                                data=json.dumps(self.entry_data), content_type='application/json')
+    self.assertEqual(response.status_code, 201)
+
+    response = self.client.delete(DELETE_URL, headers=headers,
+                                  data=json.dumps(self.entry_data), content_type='application/json')
+    self.assertEqual(response.status_code, 200)
