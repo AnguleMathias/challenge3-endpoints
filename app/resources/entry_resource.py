@@ -1,12 +1,11 @@
 from .decorators import token_required, is_blank
 from flask import request
-from flask import Resource, reqparse
+from flask_restful import Resource, reqparse
 
 from app.models import Entry
 
 
 class EntryResource(Resource):
-    """Resource for diary entries"""
     parser = reqparse.RequestParser()
     parser.add_argument('title', required=True, type=str, help='Title cannot be blank')
     parser.add_argument('description', required=True, type=str, help='Description cannot be blank')

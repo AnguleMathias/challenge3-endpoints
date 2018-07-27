@@ -2,10 +2,29 @@ from flask import Flask
 from flask_restful import Api
 
 import config
+import psycopg2
+import psycopg2.extras
+
+
+def connectToDB():
+    connectionString = 'dbname=diary user=postgres password=1 host=localhost'
+    print(connectionString)
+    try:
+        return psycopg2.connect(connectionString)
+    except:
+        print("Cant connect to database")
+
+    conn = connectToDB()
+    cur = conn.cursor()
+    try:
+        cur.execute("select title, description from entries")
+    except:
+        print("Error")
+        results = cur.fetchall()
+        return results
 
 
 def create_app(config_name):
-
     app = Flask(__name__)
     api = Api(app)
 
