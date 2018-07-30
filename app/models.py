@@ -1,124 +1,140 @@
-from datetime import datetime
+import os
+import psycopg2
+import jwt
+from flask import current_app
+from datetime import datetime, timedelta
+from werkzeug.security import generate_password_hash, check_password_hash
 
-from werkzeug.security import check_password_hash, generate_password_hash
-
-
-class DB:
-    """Class for mock database"""
-
-    def __init__(self):
-        self.users = {}
-        self.entries = {}
-        self.user_count = 0
-        self.entry_count = 0
-
-    def drop(self):
-        self.__init__()
+from .createdb import connect_to_db
 
 
-db = DB()
+conn = connect_to_db(current_app.config.get('APP_SETTINGS'))
+conn.set_session(autocommit=True)
+cur = conn.cursor()
 
 
 class Base:
-    """Base class to be inherited by User and Entry classes"""
+    @staticmethod
+    def save():
+        conn.commit()
 
-    def __init__(self):
-        pass
+    @staticmethod
+    def get(table_name, **kwargs):
+        for key, val in kwargs.items():
+            sql = "SELECT * FROM {} WHERE {}='{}'".format(table_name, key, val)
+            cur.execute(sql)
+            item = cur.fetchone()
+            return item
 
-    def update(self, data):
-        # Validate keys before passing to data.
-        for key in data:
-            setattr(self, key, data[key])
-        setattr(self, 'last_modified', datetime.utcnow().isoformat())
-        return self.view()
+    @staticmethod
+    def get_all(table_name):
+        sql = 'SELECT * FROM {}'.format(table_name)
+        cur.execute(sql)
+        data = cur.fetchall()
+        return data
+
+    @staticmethod
+    def update(table, id, data):
+        for key, val in data.items():
+            string = "{}='{}'".format(key, val)
+            sql = 'UPDATE {} SET {} WHERE id={}'.format(table, string, id)
+            cur.execute(sql)
+            conn.commit()
+
+    @staticmethod
+    def delete(table, id):
+        sql = 'DELETE FROM {} WHERE id={}'.format(table, id)
+        cur.execute(sql)
+        conn.commit()
 
 
 class User(Base):
-    """Class to model user"""
-
-    def __init__(self, username, password, email):
+    def __init__(self, username, email, password):
         self.username = username
-        self.password = generate_password_hash(password)
         self.email = email
-        self.id = None
-        self.created_at = datetime.utcnow().isoformat()
-        self.last_modified = datetime.utcnow().isoformat()
+        self.password = generate_password_hash(password)
 
-    def save(self):
-        setattr(self, 'id', db.user_count + 1)
-        db.users.update({self.id: self})
-        db.user_count += 1
-        db.entries.update({self.id: {}})
-        return self.view()
+    def add(self):
+        cur.execute(
+            """
+            INSERT INTO users(username, email, password) VALUES(%s,%s,%s)""",
+            (self.username, self.email, self.password))
+        self.save()
 
-    def validate_password(self, password):
-        if check_password_hash(self.password, password):
+    @staticmethod
+    def user_dict(user):
+        return dict(
+            id=user[0],
+            username=user[1],
+            email=user[2]
+        )
+
+    @staticmethod
+    def validate_password(password, username):
+        user = User.get('users', username=username)
+        if check_password_hash(user[3], password):
             return True
         return False
 
-    def delete(self):
-        del db.users[self.id]
+    @staticmethod
+    def generate_token(user):
+        user_id, username = user[0], user[1]
+        payload = {
+            'user_id': user_id,
+            'username': username,
+            'exp': datetime.utcnow() + timedelta(minutes=6000),
+            'iat': datetime.utcnow()}
+        token = jwt.encode(payload, str(current_app.config.get('SECRET')), algorithm='HS256')
+        return token.decode()
 
-    def view(self):
-        keys = ['username', 'email', 'id']
-        return {key: getattr(self, key) for key in keys}
-
-    @classmethod
-    def get(cls, id):
-        user = db.users.get(id)
-        if not user:
-            return {'message': 'User does not exist.'}
-        return user
-
-    @classmethod
-    def get_user_by_email(cls, email):
-        for id_ in db.users:
-            user = db.users.get(id_)
-            if user.email == email:
-                return user
-        return None
-
-    @classmethod
-    def get_user_by_username(cls, username):
-        for id_ in db.users:
-            user = db.users.get(id_)
-            if user.username == username:
-                return user
-        return None
+    @staticmethod
+    def decode_token(token):
+        payload = jwt.decode(token, str(current_app.config.get('SECRET')), algorithms=['HS256'])
+        return payload
 
 
 class Entry(Base):
-    """Class to model entry"""
-
     def __init__(self, title, description, user_id):
         self.title = title
         self.description = description
-        self.id = None
+        self.user_id = user_id
         self.created_at = datetime.utcnow().isoformat()
         self.last_modified = datetime.utcnow().isoformat()
-        self.user_id = user_id
 
-    def save(self):
-        setattr(self, 'id', db.entry_count + 1)
-        db.entry_count += 1
-        db.entries[self.user_id].update({self.id: self})
-        return self.view()
+    def add(self):
+        cur.execute(
+            """
+            INSERT INTO entries (user_id, title, description, created_at, last_modified)
+            VALUES (%s , %s, %s, %s, %s)
+            """,
+            (self.user_id, self.title, self.description, self.created_at, self.last_modified))
+        self.save()
 
-    def delete(self):
-        del db.entries[self.user_id][self.id]
+    @staticmethod
+    def get(user_id, entry_id=None):
+        if entry_id:
+            cur.execute("""SELECT * FROM entries WHERE user_id={} AND id={}""".format(user_id, entry_id))
+            return cur.fetchone()
 
-    def view(self):
-        keys = ('id', 'title', 'description', 'user_id', 'last_modified', 'created_at')
-        return {key: getattr(self, key) for key in keys}
-
-    @classmethod
-    def get(cls, user_id, id=None):
-        user_entries = db.entries.get(user_id)
-        if not user_entries:
-            return {'message': 'User does not have any entries'}
-        if id:
-            entry = user_entries.get(id)
-            if entry:
-                return entry
-            return {'message': 'User does not have that entry'}
+        cur.execute(
+            """SELECT
+                entries.id,
+                users.id,
+                title,
+                description,
+                created_at,
+                last_modified
+            FROM users INNER JOIN entries ON entries.user_id=users.id WHERE users.id={}""".format(user_id))
+        user_entries = cur.fetchall()
         return user_entries
+
+    @staticmethod
+    def entry_dict(entry):
+        return dict(
+            id=entry[0],
+            user_id=entry[1],
+            title=entry[2],
+            description=entry[3],
+            created_at=entry[4].isoformat(),
+            last_modified=entry[5].isoformat()
+        )

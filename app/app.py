@@ -49,7 +49,7 @@ def create_user():
         'id': users[-1]['id'] + 1,
         'name': request.json['name'],
         'email': request.json['email'],
-        'password': request.json.get('description', "", "")
+        'password': request.json.get('password', "", "")
     }
     users.append(user)
     return jsonify({'user': user}), 201

@@ -1,7 +1,7 @@
-from .decorators import token_required, is_blank
 from flask import request
 from flask_restful import Resource, reqparse
 
+from app.decorators import token_required, is_blank
 from app.models import Entry
 
 
@@ -19,40 +19,47 @@ class EntryResource(Resource):
         if is_blank(title) or is_blank(description):
             return {'message': 'All fields are required'}, 400
         entry = Entry(title=title, user_id=user_id, description=description)
-        entry = entry.save()
-        return {'message': 'Entry added', 'entry': entry}, 201
+        entry.add()
+        entries = Entry.get(user_id=user_id)
+        return {'message': 'Entry has been published',
+                'entry': [Entry.entry_dict(entry) for entry in entries]}, 201
 
     @token_required
     def get(self, user_id, entry_id=None):
-        user_entry = Entry.get(user_id=user_id, id=entry_id)
-        if isinstance(user_entry, Entry):
-            return {'message': 'Entry found', 'entry': user_entry.view()}, 200
-
-        if user_entry.get('message'):
-            return user_entry, 404
-        return {'message': 'Entries found', 'entries': [user_entry[entry].view() for entry in user_entry]}, 200
+        if entry_id:
+            user_entry = Entry.get(user_id=user_id, entry_id=entry_id)
+            if user_entry:
+                return {'message': 'Entry found', 'entry': Entry.entry_dict(user_entry)}, 200
+            else:
+                return {'message': 'Entry not found'}, 404
+        user_entries = Entry.get(user_id=user_id)
+        if not user_entries:
+            return {'message': 'No entries available'}, 404
+        return {'message': 'Entries found', 'entries': [Entry.entry_dict(entry) for entry in user_entries]}, 200
 
     @token_required
     def put(self, user_id, entry_id):
-        entry = Entry.get(user_id=user_id, id=entry_id)
-        if isinstance(entry, dict):
-            return entry, 404
+        entry = Entry.get(user_id=user_id, entry_id=entry_id)
+        if not entry:
+            return {"message": "Entry does not exist"}, 404
         post_data = request.get_json()
         title = post_data.get('title', None)
         description = post_data.get('description', None)
         data = {}
-        if title and is_blank(title) != '':
+        if title:
             data.update({'title': title})
-        if description and is_blank(description) != '':
+        if description:
             data.update({'description': description})
 
-        entry = entry.update(data=data)
-        return {'message': 'Entry updated successfully', 'new_entry': entry}, 200
+        Entry.update(table='entries', id=entry[0], data=data)
+        entry = Entry.get(user_id=user_id, entry_id=entry_id)
+        return {'message': 'Entry updated successfully',
+                'new_entry': Entry.entry_dict(entry)}, 200
 
     @token_required
     def delete(self, user_id, entry_id):
-        user_entry = Entry.get(user_id=user_id, id=entry_id)
-        if isinstance(user_entry, Entry):
-            user_entry.delete()
+        user_entry = Entry.get(user_id=user_id, entry_id=entry_id)
+        if user_entry:
+            Entry.delete(table='entries', id=user_entry[0])
             return {"message": "Entry has been deleted"}, 200
         return {"message": "Entry does not exist"}, 404
