@@ -9,6 +9,18 @@
   * A user should be able to view all diary entries.
   * A user should be able to modify an existing diary entry.
   
+## Endpoints
+
+| Endpoint             	| Functionality                     	|
+|----------------------	|-----------------------------------	|
+| POST /auth/login     	| Logs a user in                    	|
+| GET /auth/logout     	| Logs a user out                   	|
+| POST /entries/   	    | Create a new entry                  	|
+| GET /entries/     	| List all the created entries       	|
+| GET /entries/<id>    	| Get single entry                    	|
+| PUT /entries/     	| Update entry                         	|
+| DELETE /entries/<id> 	| Delete this single entry          	|
+  
   
 
 ## Prerequisites
