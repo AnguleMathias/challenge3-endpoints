@@ -14,3 +14,6 @@ before_script:
 
 script:
   - python3 -m unittest
+
+after_success:
+  - coveralls
