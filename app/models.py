@@ -1,5 +1,3 @@
-import os
-import psycopg2
 import jwt
 from flask import current_app
 from datetime import datetime, timedelta

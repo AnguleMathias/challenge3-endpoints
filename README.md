@@ -85,7 +85,7 @@ pip install -r requirements.txt
         
         > Running on http://127.0.0.1:5000/
         
- ## Pytest-ing the API
+ ## Flask-Testing
  
  * `git checkout develop` for all the endpoints
  
@@ -93,11 +93,11 @@ pip install -r requirements.txt
 
  * Create and activate a [Virtual Environment](https://virtualenv.pypa.io/en/stable/).
 
- * Run `pip install -r requirements.txt` for dependencies to be installed
+ * Run `pip install Flask-Testing` for dependencies to be installed
  
- * Run `pytest <filename>` 
+ * Run `python3 -m unittest` 
  
- [Pytest documentation](http://pytest-flask.readthedocs.io/en/latest/).
+ [Flask-Testing documentation](https://pythonhosted.org/Flask-Testing/).
 
 
 GREAT!! :wink:

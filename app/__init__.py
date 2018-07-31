@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_restful import Api
-
 import config
 
 
@@ -11,8 +10,8 @@ def create_app(config_name):
     app.config.from_object(config.app_config[config_name])
 
     with app.app_context():
-        from app.resources.user_resource import SignupResource, LoginResource
-        from app.resources.entry_resource import EntryResource
+        from . resources.user_resource import SignupResource, LoginResource
+        from . resources.entry_resource import EntryResource
 
     api.add_resource(SignupResource, '/api/v1/user/signup')
     api.add_resource(LoginResource, '/api/v1/user/login')
