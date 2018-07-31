@@ -81,8 +81,6 @@ pip install -r requirements.txt
  
  * `git checkout develop` for all the endpoints
  
- * `cd tests`
-
  * Create and activate a [Virtual Environment](https://virtualenv.pypa.io/en/stable/).
 
  * Run `pip install Flask-Testing` for dependencies to be installed

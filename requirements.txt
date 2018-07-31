@@ -66,3 +66,4 @@ virtualenv==16.0.0
 Werkzeug==0.14.1
 wrapt==1.10.11
 yum-metadata-parser==1.1.4
+pyjwt==1.6.4
