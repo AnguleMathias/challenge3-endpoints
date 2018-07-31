@@ -19,7 +19,6 @@ Flask-Script==2.0.6
 Flask-SQLAlchemy==2.3.2
 Flask-Testing==0.7.1
 funcsigs==1.0.2
-futures==3.2.0
 gunicorn==19.9.0
 gyp==0.1
 idna==2.6
@@ -67,4 +66,3 @@ virtualenv==16.0.0
 Werkzeug==0.14.1
 wrapt==1.10.11
 yum-metadata-parser==1.1.4
-Flask-Testing==0.7.1

@@ -68,28 +68,20 @@ pip install -r requirements.txt
 
 ## Running the app
 
-* Export the ```FLASK_APP``` environment variable:
+* Export the ```APP_SETTINGS``` environment variable:
 
-        $ export FLASK_APP=route.py
-        $ flask run
+        $ export APP_SETTINGS=development
+        $ python run.py
         
         > Running on http://127.0.0.1:5000/
 
 
-* On Windows you need to use ```set``` instead of ```export```
-
-* Alternatively, use ```python -m flask:```
-
-        $ export FLASK_APP=route.py
-        $ python -m flask run
-        
-        > Running on http://127.0.0.1:5000/
-        
+       
  ## Flask-Testing
  
  * `git checkout develop` for all the endpoints
  
- * `cd app/resources`
+ * `cd tests`
 
  * Create and activate a [Virtual Environment](https://virtualenv.pypa.io/en/stable/).
 
