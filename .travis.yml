@@ -1,18 +1,12 @@
 language: python
 
 python:
-  - "3.5.2"
-
-before_script:
-  - createdb testdb;
+  - "3.6"
 
 install:
   - pip install -r requirements.txt
-
 script:
-  - python -m pytest --cov-report term-missing --cov=app
+  - python app-test.py
 
 after_success:
-  - coveralls
-
-cache: pip
+   - "coveralls"
