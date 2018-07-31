@@ -1,9 +1,0 @@
-flask
-flask_restplus
-pytest
-pylint
-coverage
-pyjwt
-yapf
-gunicorn==19.9.0
-Flask-Testing==0.7.1
