@@ -9,6 +9,13 @@
   * A user should be able to view all diary entries.
   * A user should be able to modify an existing diary entry.
   
+## Badges
+
+[![Build Status](https://travis-ci.org/AnguleMathias/challenge3-endpoints.svg?branch=develop)](https://travis-ci.org/AnguleMathias/challenge3-endpoints)
+[![Coverage Status](https://coveralls.io/repos/github/AnguleMathias/challenge3-endpoints/badge.svg)](https://coveralls.io/github/AnguleMathias/challenge3-endpoints)
+[![Maintainability](https://api.codeclimate.com/v1/badges/64621a9336ac916cf6a4/maintainability)](https://codeclimate.com/github/AnguleMathias/challenge3-endpoints/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/64621a9336ac916cf6a4/test_coverage)](https://codeclimate.com/github/AnguleMathias/challenge3-endpoints/test_coverage)
+
 ## Endpoints
 
 | Endpoint             	| Functionality                     	|
@@ -31,11 +38,9 @@
 
 [Virtualenv](https://virtualenv.pypa.io/en/stable/) (Stores all dependencies used in the project)
 
-[Pivotal Tracker](www.pivotaltracker.com) (A project management tool)
+[Flask-testing](https://pythonhosted.org/Flask-Testing/) (Tool for testing)
 
-[Pytest](https://docs.pytest.org/en/latest/) (Tool for testing)
-
-[Vscode](https://code.visualstudio.com/download) (Preffered Code Editor)
+[Vscode](https://code.visualstudio.com/download) (Preferred Code Editor)
 
 
 ## Getting Started...
