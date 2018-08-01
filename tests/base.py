@@ -3,7 +3,6 @@ import unittest
 from unittest import TestCase
 from app.app import app
 from app.models import Database
-from instance.config import app_config
 
 
 class BaseTestClass(TestCase):
@@ -12,8 +11,9 @@ class BaseTestClass(TestCase):
         self.app = app
         self.client = self.app.test_client()
 
-    #   entry case
+        #   entry case
         self.entry = {
+
             'title': 'Day 1',
             'entry': 'Wrote an awesome blog'
         }
@@ -26,18 +26,11 @@ class BaseTestClass(TestCase):
             'title': 'Day 1'
         }
 
-    #   user case
+        #   user case
         self.user = {
             "username": "mathias",
             "email": "angulemathias3@gmail.com",
             "password": "angule1234"
-        }
-
-        # User with wrong username
-        self.user_6 = {
-            "username": "mathiassss",
-            "email": "angulemathias3@gmail.com",
-            "password": "123456234"
         }
 
         # User with no name
@@ -71,6 +64,12 @@ class BaseTestClass(TestCase):
             "email": "angulemathias3@gmail.com"
         }
 
+        # User with no username
+        self.user_6 = {
+            "email": "angulemathias3@gmail.com",
+            "password": "angule1234"
+        }
+
     def logged_in_user(self):
         self.client.post('/auth/signup',
                          data=json.dumps(self.user),
@@ -78,8 +77,17 @@ class BaseTestClass(TestCase):
         res = self.client.post('/auth/login',
                                data=json.dumps(self.user),
                                headers={'content-type': 'application/json'})
-
         return res
+
+    def signup_user(self):
+        return self.client.post('/auth/signup',
+                                data=json.dumps(self.user),
+                                headers={'content-type': 'application/json'})
+
+    def login_user(self):
+        return self.client.post('/auth/login',
+                                data=json.dumps(self.user),
+                                headers={'content-type': 'application/json'})
 
     def tearDown(self):
         Database().drop_table_user()

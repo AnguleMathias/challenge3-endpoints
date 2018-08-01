@@ -1,23 +1,33 @@
-# import json
-#
-# from .base import *
-#
-#
-# class TestEntry(BaseTestClass):
-#
-#     def test_get_all_entries(self):
-#         self.client.post('/api/v1/entries',
-#                          data=json.dumps(self.entry),
-#                          content_type='application/json')
-#         response = self.client.get('/api/v1/entries',
-#                                    data=json.dumps(self.entry),
-#                                    content_type='application/json')
-#         self.assertEqual(response.status_code, 200)
-#         data = json.loads(response.get_data())
-#         self.assertEqual(data['message'], 'Entries found successfully')
-#
+from .base import *
+
+
+class TestEntry(BaseTestClass):
+
+    def test_get_all_entries(self):
+        res = self.signup_user()
+        self.assertEqual(res.status_code, 201)
+
+        res = self.login_user()
+        print(res)
+        self.assertEqual(res.status_code, 200)
+
+        self.client.post('/api/v1/entries',
+                         data=json.dumps(self.entry),
+                         content_type='application/json')
+
+        response = self.client.get('/api/v1/entries',
+                                   headers={
+                                       'content_type': 'application/json'
+                                   },
+                                   data=json.dumps(self.entry),
+                                   )
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data[u'message'], 'Entries found successfully')
+
 #     def test_get_entry_by_id(self):
-#         self.client.post('/api/v1/entries',
+#         self.client.post('/api/v1/entries/<int:entry_id>',
 #                          data=json.dumps(self.entry),
 #                          content_type='application/json')
 #         response = self.client.get('/api/v1/entries/1',

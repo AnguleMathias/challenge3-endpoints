@@ -1,10 +1,13 @@
 import os
+import re
+
 from flask import Flask, jsonify, abort, request
 from flask_jwt_extended import jwt_required, JWTManager
 from .models import Database
 from instance.config import app_config
 
 app = Flask(__name__, instance_relative_config=True)
+
 app.config.from_object(app_config[os.getenv('APP_SETTINGS')])
 app.config.from_pyfile('config.py')
 
@@ -77,6 +80,15 @@ def signup():
         username = request.json['username']
         password = request.json['password']
         email = request.json['email']
+
+        valid_email = re.compile(r"(^[a-zA-Z0-9_.-]+@[a-zA-Z-]+\.[.a-zA-Z-]+$)")
+        valid_username = re.compile(r"(^[a-zA-Z0-9_.-]+$)")
+        if not re.match(valid_username, username):
+            return jsonify({'message': 'Username should not have any special characters.'}), 400
+        elif len(username) < 3:
+            return jsonify({'message': 'Username should be at least three characters long.'}), 400
+        elif not re.match(valid_email, email):
+            return jsonify({'message': 'Invalid email format.'}), 400
         user_data = {
                 'username': username,
                 'password': password,
