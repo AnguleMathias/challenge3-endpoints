@@ -51,7 +51,7 @@ def modify_entries(entry_id):
         entry = request.json['entry']
         entry_data = {
             'title': title,
-            'entry': entry,
+            'entry': entry
         }
         Database().create_table_entry()
         return Database().update_entry(entry_id, entry_data)
@@ -91,7 +91,7 @@ def signup():
             user_data = {
                 'username': username,
                 'password': password,
-                'email': email,
+                'email': email
             }
 
         Database().create_table_user()

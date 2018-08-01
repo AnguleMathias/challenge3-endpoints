@@ -1,14 +1,13 @@
 import json
 
 from tests.base import BaseClass
-from app.models import Entry
 
 
-ADD_ENTRY_URL = '/api/v1/user/entries'
-GET_SINGLE_URL = '/api/v1/user/entries/1'
-GET_ALL_URL = '/api/v1/user/entries'
-DELETE_URL = '/api/v1/user/entries/1'
-MODIFY_URL = '/api/v1/user/entries/1'
+ADD_ENTRY_URL = '/api/v1/entries'
+GET_SINGLE_URL = '/api/v1/entries/1'
+GET_ALL_URL = '/api/v1/entries'
+DELETE_URL = '/api/v1/entries/1'
+MODIFY_URL = '/api/v1/entries/1'
 
 
 class TestEntry(BaseClass):
