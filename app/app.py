@@ -7,8 +7,8 @@ from .models import Database
 from instance.config import app_config
 
 app = Flask(__name__, instance_relative_config=True)
-
-app.config.from_object(app_config[os.getenv('APP_SETTINGS')])
+#
+# app.config.from_object(app_config[os.getenv('APP_SETTINGS')])
 app.config.from_pyfile('config.py')
 
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
