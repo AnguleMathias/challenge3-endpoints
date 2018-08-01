@@ -137,3 +137,9 @@ class Database:
             self.conn.commit()
             return jsonify({'message': 'Entry successfully deleted'}), 204
         return jsonify({'message': 'Entry not found.'}), 400
+
+
+if __name__ == "__main__":
+    db = Database()
+    db.create_table_entry()
+    db.drop_table_user()
