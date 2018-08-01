@@ -45,12 +45,12 @@ class Database:
                                 user_id INTEGER NOT NULL,
                                 title VARCHAR NOT NULL,
                                 entry VARCHAR NOT NULL,
-                                tag VARCHAR NOT NULL,
-                                created_at timestamp NOT NULL,
-                                last_modified timestamp NOT NULL,
+                                created_at timestamp,
+                                last_modified timestamp,
                                 PRIMARY KEY (user_id , id),
                                 FOREIGN KEY (user_id) REFERENCES users (id));
                                 """)
+
         self.cursor.close()
         self.conn.commit()
         self.conn.close()
@@ -97,8 +97,8 @@ class Database:
         return jsonify({'message': 'password is invalid'}), 400
 
     def add_entry(self, entry_data):
-        self.cursor.execute("""INSERT INTO entries (title, entry)
-                            VALUES (%(title)s, %(entry)s)""", entry_data)
+        self.cursor.execute("""INSERT INTO entries (user_id, title, entry)
+                            VALUES (%(user_id)s,%(title)s, %(entry)s)""", entry_data)
         self.conn.commit()
         return jsonify({'message': 'Entry successfully created'}), 200
 

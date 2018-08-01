@@ -1,4 +1,3 @@
-import re
 import os
 from flask import Flask, jsonify, abort, request
 from flask_jwt_extended import jwt_required, JWTManager
@@ -28,10 +27,12 @@ def entries():
         elif not 'entry' in request.json:
             return jsonify({'message': 'Entry is required'}), 400
 
+        user_id = request.json['user_id']
         title = request.json['title']
         entry = request.json['entry']
 
         entry_data = {
+            'user_id': user_id,
             'title': title,
             'entry': entry
         }
@@ -76,18 +77,6 @@ def signup():
         username = request.json['username']
         password = request.json['password']
         email = request.json['email']
-        # valid_email = re.compile(r"(^[a-zA-Z0-9_.-]+@[a-zA-Z-]+\.[.a-zA-Z-]+$)")
-        # valid_username = re.compile(r"(^[a-zA-Z0-9_.-]+$)")
-        # #
-        # # if not re.match(valid_username, username):
-        # #     return jsonify({'message': 'Name should not contain any special characters.'}), 400
-        # # elif len(username) < 4:
-        # #     return jsonify({'message': 'Username should be at least four characters long.'}), 400
-        # # elif len(password) < 8:
-        # #     return jsonify({'message': 'Password should be at least eight characters long.'}), 400
-        # # elif not re.match(valid_email, email):
-        # # #     return jsonify({'message': 'Invalid email format.'}), 400
-        # else:
         user_data = {
                 'username': username,
                 'password': password,
