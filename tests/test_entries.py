@@ -1,6 +1,6 @@
 import json
 
-from ..base import BaseClass
+from tests.base import BaseClass
 from app.models import Entry
 
 

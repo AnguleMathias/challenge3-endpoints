@@ -1,92 +1,115 @@
+import re
+import os
+from flask import Flask, jsonify, abort, request
+from flask_jwt_extended import jwt_required, JWTManager
+from .models import Database
+from instance.config import app_config
 
-from flask import Flask, jsonify, abort, make_response, request
+app = Flask(__name__, instance_relative_config=True)
+app.config.from_object(app_config[os.getenv('APP_SETTINGS')])
+app.config.from_pyfile('config.py')
 
-app = Flask(__name__)
-
-users = [
-    {
-        'id': 1,
-        'name': 'mathias',
-        'email': 'angule@gmail.com',
-        'password': '123456',
-    },
-    {
-        'id': 2,
-        'name': 'Mimi',
-        'email': 'wewe@gmail.com',
-        'password': 'sisisi',
-    }
-]
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
+jwt = JWTManager(app)
 
 
-# home route
-@app.route('/')
-def index():
-    return "Welcome user!"
+@app.route('/api/v1/entries', methods=['GET', 'POST'])
+@jwt_required
+def entries():
+    if request.method == 'GET':
+        Database().create_table_entry()
+        return Database().get_all_entries()
+
+    else:
+        if not request.json:
+            abort(400)
+        elif not 'title' in request.json:
+            return jsonify({'message': 'Title is required'}), 400
+        elif not 'entry' in request.json:
+            return jsonify({'message': 'Entry is required'}), 400
+
+        title = request.json['title']
+        entry = request.json['entry']
+
+        entry_data = {
+            'title': title,
+            'entry': entry
+        }
+
+        Database().create_table_entry()
+        return Database().add_entry(entry_data)
 
 
-# get all users
-@app.route('/api/v1/users', methods=['GET'])
-def get_users():
-    return jsonify({'users': users})
+@app.route('/api/v1/entries/<int:entry_id>', methods=['GET', 'PUT', 'DELETE'])
+@jwt_required
+def modify_entries(entry_id):
+    if request.method == 'GET':
+        Database().create_table_entry()
+        return Database().get_one_entry(entry_id)
+    elif request.method == 'PUT':
+        title = request.json['title']
+        entry = request.json['entry']
+        entry_data = {
+            'title': title,
+            'entry': entry,
+        }
+        Database().create_table_entry()
+        return Database().update_entry(entry_id, entry_data)
+
+    else:
+        Database().create_table_entry()
+        return Database().delete_entry(entry_id)
 
 
-# get a single user by ID
-@app.route('/api/v1/users/<int:user_id>', methods=['GET'])
-def get_user(user_id):
-    user = [user for user in users if user['id'] == user_id]
-    if len(user) == 0:
-        abort(404)
-    return jsonify({'user': user[0]})
-
-
-# add user
-@app.route('/api/v1/users', methods=['POST'])
-def create_user():
-    if not request.json or not 'name' in request.json:
-        abort(400)
-    user = {
-        'id': users[-1]['id'] + 1,
-        'name': request.json['name'],
-        'email': request.json['email'],
-        'password': request.json.get('password', "", "")
-    }
-    users.append(user)
-    return jsonify({'user': user}), 201
-
-
-# update user
-@app.route('/api/v1/users/<int:user_id>', methods=['PUT'])
-def update_user(user_id):
-    user = [user for user in users if user['id'] == user_id]
-    if len(user) == 0:
-        abort(404)
+@app.route('/auth/signup', methods=['POST'])
+def signup():
+    """Creates a user"""
     if not request.json:
         abort(400)
-    if 'name' in request.json and type(request.json['name']):
+    elif not 'username' in request.json:
+        return jsonify({'message': 'Username is required'}), 400
+    elif not 'email' in request.json:
+        return jsonify({'message': 'Email is required'}), 400
+    elif not 'password' in request.json:
+        return jsonify({'message': 'Password is required'}), 401
+    else:
+        username = request.json['username']
+        password = request.json['password']
+        email = request.json['email']
+        valid_email = re.compile(r"(^[a-zA-Z0-9_.-]+@[a-zA-Z-]+\.[.a-zA-Z-]+$)")
+        valid_username = re.compile(r"(^[a-zA-Z0-9_.-]+$)")
+
+        if not re.match(valid_username, username):
+            return jsonify({'message': 'Name should not contain any special characters.'}), 400
+        elif len(username) < 4:
+            return jsonify({'message': 'Username should be at least four characters long.'}), 400
+        elif len(password) < 8:
+            return jsonify({'message': 'Password should be at least eight characters long.'}), 400
+        elif not re.match(valid_email, email):
+            return jsonify({'message': 'Invalid email format.'}), 400
+        else:
+            user_data = {
+                'username': username,
+                'password': password,
+                'email': email,
+            }
+
+        Database().create_table_user()
+        return Database().signup(user_data)
+
+
+@app.route('/auth/login', methods=['POST'])
+def login():
+    if not request.json:
         abort(400)
-    if 'password' in request.json and type(request.json['password']):
-        abort(400)
-    if 'email' in request.json and type(request.json['email']):
-        abort(400)
+    elif not 'username' in request.json:
+        return jsonify({'message': 'Username is required'}), 400
+    elif not 'password' in request.json:
+        return jsonify({'message': 'Password is required'}), 401
 
-    user[0]['name'] = request.json.get('name', user[0]['name'])
-    user[0]['email'] = request.json.get('email', user[0]['email'])
+    username = request.json['username']
+    password = request.json['password']
 
-    return jsonify({'user': user[0]})
+    Database().create_table_user()
 
-
-# delete user
-@app.route('/api/v1/users/<int:user_id>', methods=['DELETE'])
-def delete_user(user_id):
-    user = [user for user in users if user['id'] == user_id]
-    if len(user) == 0:
-        abort(404)
-    users.remove(user[0])
-    return jsonify({'result': True})
-
-
-# handle error
-@app.errorhandler(404)
-def not_found():
-    return make_response(jsonify({'error': 'Item not found'}), 404)
+    return Database().login(password, username)

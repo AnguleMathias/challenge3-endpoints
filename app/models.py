@@ -1,138 +1,137 @@
-import jwt
-from flask import current_app
-from datetime import datetime, timedelta
-from werkzeug.security import generate_password_hash, check_password_hash
+import os
+from datetime import timedelta
+from flask import Flask, jsonify, request
+import psycopg2
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import (
+    JWTManager, create_access_token)
 
-from .createdb import connect_to_db
+app = Flask(__name__, instance_relative_config=True)
 
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
+jwt = JWTManager(app)
 
-conn = connect_to_db(current_app.config.get('APP_SETTINGS'))
-conn.set_session(autocommit=True)
-cur = conn.cursor()
-
-
-class Base:
-    @staticmethod
-    def save():
-        conn.commit()
-
-    @staticmethod
-    def get(table_name, **kwargs):
-        for key, val in kwargs.items():
-            sql = "SELECT * FROM {} WHERE {}='{}'".format(table_name, key, val)
-            cur.execute(sql)
-            item = cur.fetchone()
-            return item
-
-    @staticmethod
-    def get_all(table_name):
-        sql = 'SELECT * FROM {}'.format(table_name)
-        cur.execute(sql)
-        data = cur.fetchall()
-        return data
-
-    @staticmethod
-    def update(table, id, data):
-        for key, val in data.items():
-            string = "{}='{}'".format(key, val)
-            sql = 'UPDATE {} SET {} WHERE id={}'.format(table, string, id)
-            cur.execute(sql)
-            conn.commit()
-
-    @staticmethod
-    def delete(table, id):
-        sql = 'DELETE FROM {} WHERE id={}'.format(table, id)
-        cur.execute(sql)
-        conn.commit()
+bcrypt = Bcrypt(app)
 
 
-class User(Base):
-    def __init__(self, username, email, password):
-        self.username = username
-        self.email = email
-        self.password = generate_password_hash(password)
+class Database:
+    def __init__(self):
+        dbname = os.getenv('DB_NAME')
+        user = os.getenv('DB_USER')
+        password = os.getenv('DB_PASSWORD')
+        host = os.getenv('DB_HOST')
+        port = os.getenv('DB_PORT')
+        self.conn = psycopg2.connect(
+            dbname=dbname,
+            user=user,
+            host=host,
+            password=password,
+            port=port)
+        self.cursor = self.conn.cursor()
 
-    def add(self):
-        cur.execute(
-            """
-            INSERT INTO users(username, email, password) VALUES(%s,%s,%s)""",
-            (self.username, self.email, self.password))
-        self.save()
+    def create_table_user(self):
+        self.cursor.execute("""CREATE TABLE users(
+                                id serial PRIMARY KEY,
+                                email VARCHAR NOT NULL UNIQUE,
+                                password VARCHAR NOT NULL);
+                                """)
+        self.cursor.close()
+        self.conn.commit()
+        self.conn.close()
 
-    @staticmethod
-    def user_dict(user):
-        return dict(
-            id=user[0],
-            username=user[1],
-            email=user[2]
-        )
+    def create_table_entry(self):
+        self.cursor.execute("""CREATE TABLE entries(
+                                id serial,
+                                user_id INTEGER NOT NULL,
+                                title VARCHAR NOT NULL,
+                                entry VARCHAR NOT NULL,
+                                tag VARCHAR NOT NULL,
+                                created_at timestamp NOT NULL,
+                                last_modified timestamp NOT NULL,
+                                PRIMARY KEY (user_id , id),
+                                FOREIGN KEY (user_id) REFERENCES users (id));
+                                """)
+        self.cursor.close()
+        self.conn.commit()
+        self.conn.close()
 
-    @staticmethod
-    def validate_password(password, username):
-        user = User.get('users', username=username)
-        if check_password_hash(user[3], password):
-            return True
-        return False
+    def drop_table_entry(self):
+        self.cursor.execute("""DROP TABLE IF EXISTS entries""")
+        self.cursor.close()
+        self.conn.commit()
+        self.conn.close()
 
-    @staticmethod
-    def generate_token(user):
-        user_id, username = user[0], user[1]
-        payload = {
-            'user_id': user_id,
-            'username': username,
-            'exp': datetime.utcnow() + timedelta(minutes=6000),
-            'iat': datetime.utcnow()}
-        token = jwt.encode(payload, str(current_app.config.get('SECRET')), algorithm='HS256')
-        return token.decode()
+    def drop_table_user(self):
+        self.cursor.execute("""DROP TABLE IF EXISTS users""")
+        self.cursor.close()
+        self.conn.commit()
+        self.conn.close()
 
-    @staticmethod
-    def decode_token(token):
-        payload = jwt.decode(token, str(current_app.config.get('SECRET')), algorithms=['HS256'])
-        return payload
+    def signup(self, user_data):
+        user = request.get_json()
+        username = (user['username'])
+        self.cursor.execute("SELECT username FROM users WHERE username = %s", (username,))
+        username_data = self.cursor.fetchall()
+        if not username_data:
+            self.cursor.execute("""INSERT INTO users (username, password, email)
+                                VALUES (%(username)s, %(password)s, %(email)s)""", user_data)
+            self.conn.commit()
+            return jsonify({'message': 'User created successfully'}), 201
+        return jsonify({'message': 'Username already exists'}), 400
 
+    def login(self, username, password):
+        credentials = request.get_json()
+        password = (credentials['password'])
+        username = (credentials['username'])
 
-class Entry(Base):
-    def __init__(self, title, description, user_id):
-        self.title = title
-        self.description = description
-        self.user_id = user_id
-        self.created_at = datetime.utcnow().isoformat()
-        self.last_modified = datetime.utcnow().isoformat()
+        self.cursor.execute("""SELECT password FROM users WHERE username = %s""",
+                            (username,))
+        data = self.cursor.fetchone()
+        if data:
+            if bcrypt.check_password_hash(data[0], password):
+                expiration = timedelta(minutes=30)
+                access_token = create_access_token(identity=username, expires_delta=expiration)
+                return jsonify({'token': access_token, 'message': 'Login successfull'}), 200
+            return jsonify({'message': 'Password is invalid'}), 400
+        return jsonify({'message': 'Username is invalid'}), 400
 
-    def add(self):
-        cur.execute(
-            """
-            INSERT INTO entries (user_id, title, description, created_at, last_modified)
-            VALUES (%s , %s, %s, %s, %s)
-            """,
-            (self.user_id, self.title, self.description, self.created_at, self.last_modified))
-        self.save()
+    def add_entry(self, entry_data):
+        self.cursor.execute("""INSERT INTO entries (title, entry)
+                            VALUES (%(title)s, %(entry)s)""", entry_data)
+        self.conn.commit()
+        return jsonify({'message': 'Entry successfully created'}), 200
 
-    @staticmethod
-    def get(user_id, entry_id=None):
-        if entry_id:
-            cur.execute("""SELECT * FROM entries WHERE user_id={} AND id={}""".format(user_id, entry_id))
-            return cur.fetchone()
+    def get_one_entry(self, entry_id):
+        self.cursor.execute("""SELECT * FROM entries WHERE entry_id = %s""", (entry_id,))
+        data = self.cursor.fetchall()
+        if data:
+            return jsonify({'Entry': data, 'message': 'Entry successfully found'}), 200
+        return jsonify({'message': 'Entry not found'})
 
-        cur.execute(
-            """SELECT
-                entries.id,
-                users.id,
-                title,
-                description,
-                created_at,
-                last_modified
-            FROM users INNER JOIN entries ON entries.user_id=users.id WHERE users.id={}""".format(user_id))
-        user_entries = cur.fetchall()
-        return user_entries
+    def get_all_entries(self):
+        self.cursor.execute("""SELECT * FROM entries""")
+        data = self.cursor.fetchall()
+        if data:
+            return jsonify({'Entries': data, 'message': 'All entries found successfully'})
+        return jsonify({'message': 'No entries found'})
 
-    @staticmethod
-    def entry_dict(entry):
-        return dict(
-            id=entry[0],
-            user_id=entry[1],
-            title=entry[2],
-            description=entry[3],
-            created_at=entry[4].isoformat(),
-            last_modified=entry[5].isoformat()
-        )
+    def update_entry(self, entry_id, entry_data):
+        self.cursor.execute("""SELECT * FROM entries WHERE entry_id = %s""", (entry_id,))
+        data = self.cursor.fetchall()
+        if data:
+            self.cursor.execute("""UPDATE entries set entry_title=%(title)s,
+                                entry=%(entry)s """, entry_data)
+            self.conn.commit()
+            self.cursor.execute("""SELECT * FROM entries WHERE entry_id = %s""", (entry_id,))
+            updated_data = self.cursor.fetchall()
+            return jsonify({'Entry': updated_data, 'message': 'Entry successfully updated'}), 200
+        return jsonify({'message': 'Entry not found'})
+
+    def delete_entry(self, entry_id):
+        self.cursor.execute("""SELECT * FROM entries WHERE entry_id = %s""", (entry_id,))
+        data = self.cursor.fetchall()
+        if data:
+            self.cursor.execute("""DELETE FROM entries WHERE entry_id = %s""", (entry_id,))
+            self.conn.commit()
+            return jsonify({'message': 'Entry successfully deleted'}), 204
+        return jsonify({'message': 'Entry not found.'}), 400

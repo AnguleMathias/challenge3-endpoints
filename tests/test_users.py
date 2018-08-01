@@ -1,6 +1,6 @@
 import json
 
-from ..base import BaseClass
+from tests.base import BaseClass
 
 SIGNUP_URL = '/api/v1/user/signup'
 LOGIN_URL = '/api/v1/user/login'
