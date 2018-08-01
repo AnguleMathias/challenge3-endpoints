@@ -12,6 +12,7 @@ class BaseTestClass(TestCase):
         self.app = app.config.from_object(app_config['testing'])
         self.client = app.test_client()
 
+    #   entry case
         self.entry = {
             'title': 'Day 1',
             'entry': 'Wrote an awesome blog'
@@ -25,6 +26,7 @@ class BaseTestClass(TestCase):
             'title': 'Day 1'
         }
 
+    #   user case
         self.user = {
             "username": "mathias",
             "email": "angulemathias3@gmail.com",

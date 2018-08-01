@@ -30,7 +30,7 @@ class Database:
         self.cursor = self.conn.cursor()
 
     def create_table_user(self):
-        self.cursor.execute("""CREATE TABLE users(
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS users(
                                 id serial PRIMARY KEY,
                                 email VARCHAR NOT NULL UNIQUE,
                                 password VARCHAR NOT NULL);
@@ -40,7 +40,7 @@ class Database:
         self.conn.close()
 
     def create_table_entry(self):
-        self.cursor.execute("""CREATE TABLE entries(
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS entries(
                                 id serial,
                                 user_id INTEGER NOT NULL,
                                 title VARCHAR NOT NULL,
@@ -70,7 +70,7 @@ class Database:
     def signup(self, user_data):
         user = request.get_json()
         username = (user['username'])
-        self.cursor.execute("SELECT username FROM users WHERE username = %s", (username,))
+        self.cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
         username_data = self.cursor.fetchall()
         if not username_data:
             self.cursor.execute("""INSERT INTO users (username, password, email)
@@ -84,16 +84,17 @@ class Database:
         password = (credentials['password'])
         username = (credentials['username'])
 
-        self.cursor.execute("""SELECT password FROM users WHERE username = %s""",
+        self.cursor.execute("""SELECT password, username FROM users WHERE username = (%s)""",
                             (username,))
         data = self.cursor.fetchone()
         if data:
-            if bcrypt.check_password_hash(data[0], password):
+            if not data[1] == username:
+                return jsonify({'message': 'Username is invalid'}), 400
+            if data[0] == password:
                 expiration = timedelta(minutes=30)
                 access_token = create_access_token(identity=username, expires_delta=expiration)
-                return jsonify({'token': access_token, 'message': 'Login successfull'}), 200
-            return jsonify({'message': 'Password is invalid'}), 400
-        return jsonify({'message': 'Username is invalid'}), 400
+                return jsonify({'token': access_token, 'message': 'Login successful'}), 200
+        return jsonify({'message': 'password is invalid'}), 400
 
     def add_entry(self, entry_data):
         self.cursor.execute("""INSERT INTO entries (title, entry)

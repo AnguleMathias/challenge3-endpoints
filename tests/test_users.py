@@ -1,79 +1,148 @@
-# import json
-#
-# from .base import BaseClass
-#
-# SIGNUP_URL = '/api/v1/user/signup'
-# LOGIN_URL = '/api/v1/user/login'
-#
-#
-# class TestUserCase(BaseClass):
-#
-#     def test_signup(self):
-#         response = self.client.post(SIGNUP_URL,
-#                                     data=json.dumps(self.user_data), content_type='application/json')
-#         self.assertEqual(response.status_code, 201)
-#         result = json.loads(response.data.decode())
-#         self.assertEqual(result["message"], "Successfully registered")
-#
-#     def test_wrong_signup(self):
-#         response = self.client.post(SIGNUP_URL,
-#                                     data=json.dumps(
-#                                         {'username': 'angule', 'email': 'mathias@yahoo.com', 'password': ''}),
-#                                     content_type='application/json')
-#         self.assertEqual(response.status_code, 400)
-#         result = json.loads(response.data.decode())
-#         self.assertEqual(result["message"], "All fields are required")
-#
-#     def test_cannot_signup_twice(self):
-#         self.client.post(SIGNUP_URL,
-#                          data=json.dumps(self.user_data), content_type='application/json')
-#         response2 = self.client.post(SIGNUP_URL,
-#                                      data=json.dumps(self.user_data), content_type='application/json')
-#         self.assertEqual(response2.status_code, 203)
-#         result = json.loads(response2.data.decode())
-#         self.assertEqual(result["message"], "User already exists")
-#
-#     def test_cannot_signup_with_invalid_username(self):
-#         response = self.client.post(SIGNUP_URL,
-#                                     data=json.dumps(
-#                                         {'username': '#$3454', 'email': 'shimanyiro@gmail.com',
-#                                          'password': 'password'}),
-#                                     content_type='application/json')
-#         self.assertEqual(response.status_code, 400)
-#         result = json.loads(response.data.decode())
-#         self.assertEqual(result["message"], "Invalid username")
-#
-#     def test_cannot_signup_with_wrong_email_format(self):
-#         response = self.client.post(SIGNUP_URL,
-#                                     data=json.dumps(
-#                                         {'username': 'mathias', 'email': '12ma.com', 'password': 'password'}),
-#                                     content_type='application/json')
-#         self.assertEqual(response.status_code, 400)
-#         result = json.loads(response.data.decode())
-#         self.assertEqual(result["message"], "Invalid email. Ensure email is of the form example@mail.com")
-#
-#     def test_login(self):
-#         self.test_user.save()
-#         response = self.client.post(LOGIN_URL,
-#                                     data=json.dumps({'username': 'mathias', 'password': 'password'}),
-#                                     content_type='application/json')
-#         self.assertEqual(response.status_code, 200)
-#         result = json.loads(response.data.decode())
-#         self.assertEqual(result["message"], "You are successfully logged in")
-#
-#     def test_wrong_password(self):
-#         self.test_user.save()
-#         response = self.client.post(LOGIN_URL,
-#                                     data=json.dumps({'username': 'mathias', 'password': 'wrong_password'}),
-#                                     content_type='application/json')
-#         self.assertEqual(response.status_code, 401)
-#         result = json.loads(response.data.decode())
-#         self.assertEqual(result['message'], 'Username or password is wrong.')
-#
-#     def test_login_nonexistent_user(self):
-#         response = self.client.post(LOGIN_URL,
-#                                     data=json.dumps({'username': 'nonexistent', 'password': 'nonexistent-password'}),
-#                                     content_type='application/json')
-#         self.assertEqual(response.status_code, 404)
-#         result = json.loads(response.data.decode())
-#         self.assertEqual(result['message'], 'User unavailable')
+import json
+from tests.base import BaseTestClass
+
+
+class TestUser(BaseTestClass):
+
+    def test_signup(self):
+        """Testing signup with the correct credentials"""
+        response = self.client.post('/auth/signup',
+                                    data=json.dumps({
+                                        'username': 'Maureen',
+                                        'email': 'nansubuga@gmail.com',
+                                        'password': 'carol1234'}),
+                                    headers={'content-type': 'application/json'})
+        self.assertEqual(response.status_code, 201)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'User created successfully')
+
+    def test_signup_invalid_username(self):
+        response = self.client.post('/auth/signup',
+                                    data=json.dumps({
+                                        'username': 'mimi@23',
+                                        'email': 'nansubuga@gmail.com',
+                                        'password': 'carol1234'}),
+                                    headers={'content-type': 'application/json'})
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Username must not have special characters.')
+
+    def test_signup_invalid_email(self):
+        """Testing signup with an invalid email"""
+        response = self.client.post('/auth/signup',
+                                    data=json.dumps({
+                                        'username': 'JamesMwangi',
+                                        'email': 'jsongmail.com',
+                                        'password': '88881234'}),
+                                    headers={'content-type': 'application/json'})
+        print(response.data)
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Invalid email format.')
+
+    def test_signup_short_username(self):
+        """Testing signup with a short username"""
+        response = self.client.post('/auth/signup',
+                                    data=json.dumps({
+                                        'username': 'Ja',
+                                        'email': 'json@gmail.com',
+                                        'password': '88881234'}),
+                                    headers={'content-type': 'application/json'})
+        print(response.data)
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Username should be at least three characters long.')
+
+    def test_signup_short_password(self):
+        """Testing signup with a short password"""
+        response = self.client.post('/auth/signup',
+                                    data=json.dumps({
+                                        'username': 'JamesMwangi',
+                                        'email': 'json@gmail.com',
+                                        'password': '1234'}),
+                                    headers={'content-type': 'application/json'})
+        print(response.data)
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Password should be at least eight characters long.')
+
+    def test_signup_same_username(self):
+        """Testing signup with the same username"""
+        self.signup_user()
+        response = self.signup_user()
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Username already exists')
+
+    def test_signup_no_username(self):
+        """Testing signup with no username"""
+        response = self.client.post('/auth/signup',
+                                    data=json.dumps(self.user_no_username),
+                                    headers={'content-type': 'application/json'})
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Username is required')
+
+    def test_signup_no_email(self):
+        """Testing signup with no email"""
+        response = self.client.post('/auth/signup',
+                                    data=json.dumps(self.user_no_email),
+                                    headers={'content-type': 'application/json'})
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.data.decode())
+        self.assertEqual(data['message'], 'Email is required')
+
+    def test_signup_no_password(self):
+        """Testing signup with no password"""
+        response = self.client.post('/auth/signup',
+                                    data=json.dumps(self.user_no_password),
+                                    headers={'content-type': 'application/json'})
+        self.assertEqual(response.status_code, 401)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Password is required')
+
+    def test_login(self):
+        """Testing login with the right credentials"""
+        self.signup_user()
+        response = self.login_user()
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Login successfull')
+
+    def test_login_invalid_password(self):
+        """Testing login with an invalid password"""
+        self.signup_user()
+        response = self.client.post('/auth/login',
+                                    data=json.dumps(self.user_invalid_password),
+                                    headers={'content-type': 'application/json'})
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Password is invalid')
+
+    def test_login_invalid_username(self):
+        """Testing login with an invalid username"""
+        self.signup_user()
+        response = self.client.post('/auth/login',
+                                    data=json.dumps(self.user_wrong_username),
+                                    headers={'content-type': 'application/json'})
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Username is invalid')
+
+    def test_login_no_username(self):
+        """Testing login with no username"""
+        response = self.client.post('/auth/login',
+                                    data=json.dumps(self.user_no_username),
+                                    headers={'content-type': 'application/json'})
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Username is required')
+
+    def test_login_no_password(self):
+        """Testing login without a password"""
+        response = self.client.post('/auth/login',
+                                    data=json.dumps(self.user_no_password),
+                                    headers={'content-type': 'application/json'})
+        self.assertEqual(response.status_code, 401)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Password is required')
