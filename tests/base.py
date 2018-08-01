@@ -1,7 +1,7 @@
 import json
 import unittest
 from unittest import TestCase
-from app import app
+from app.app import app
 from app.models import Database
 from instance.config import app_config
 
@@ -9,8 +9,8 @@ from instance.config import app_config
 class BaseTestClass(TestCase):
 
     def setUp(self):
-        self.app = app.config.from_object(app_config['testing'])
-        self.client = app.test_client()
+        self.app = app
+        self.client = self.app.test_client()
 
     #   entry case
         self.entry = {
@@ -34,7 +34,7 @@ class BaseTestClass(TestCase):
         }
 
         # User with wrong username
-        self.user = {
+        self.user_6 = {
             "username": "mathiassss",
             "email": "angulemathias3@gmail.com",
             "password": "123456234"
@@ -59,14 +59,14 @@ class BaseTestClass(TestCase):
         }
 
         # User with wrong password
-        self.user = {
+        self.user_4 = {
             "username": "mathias",
             "email": "angulemathias3@gmail.com",
             "password": "123456234"
         }
 
         # User with no password
-        self.user = {
+        self.user_5 = {
             "username": "mathias",
             "email": "angulemathias3@gmail.com"
         }

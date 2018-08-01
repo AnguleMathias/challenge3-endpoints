@@ -32,6 +32,7 @@ class Database:
     def create_table_user(self):
         self.cursor.execute("""CREATE TABLE IF NOT EXISTS users(
                                 id serial PRIMARY KEY,
+                                username VARCHAR NOT NULL,
                                 email VARCHAR NOT NULL UNIQUE,
                                 password VARCHAR NOT NULL);
                                 """)
@@ -62,7 +63,7 @@ class Database:
         self.conn.close()
 
     def drop_table_user(self):
-        self.cursor.execute("""DROP TABLE IF EXISTS users""")
+        self.cursor.execute("""DROP TABLE IF EXISTS users cascade""")
         self.cursor.close()
         self.conn.commit()
         self.conn.close()
