@@ -1,16 +1,29 @@
-import unittest
 import json
-
+import unittest
+from unittest import TestCase
 from app import app
 from app.models import Database
 from instance.config import app_config
 
 
-class BaseClass(unittest.TestCase):
+class BaseTestClass(TestCase):
 
     def setUp(self):
         self.app = app.config.from_object(app_config['testing'])
         self.client = app.test_client()
+
+        self.entry = {
+            'title': 'Day 1',
+            'entry': 'Wrote an awesome blog'
+        }
+
+        self.entry_without_title = {
+            'entry': 'Wrote an awesome blog'
+        }
+
+        self.entry_without_entry = {
+            'title': 'Day 1'
+        }
 
         self.user = {
             "username": "mathias",

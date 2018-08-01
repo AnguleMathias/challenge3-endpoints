@@ -1,116 +1,75 @@
 import json
 
-from tests.base import BaseClass
+from .base import BaseTestClass
 
 
-ADD_ENTRY_URL = '/api/v1/entries'
-GET_SINGLE_URL = '/api/v1/entries/1'
-GET_ALL_URL = '/api/v1/entries'
-DELETE_URL = '/api/v1/entries/1'
-MODIFY_URL = '/api/v1/entries/1'
-
-
-class TestEntry(BaseClass):
-
-    def test_add_entry(self):
-        response = self.logged_in_user()
-        token = json.loads(response.data.decode('utf-8'))['token']
-        headers = {'Authorization': 'Bearer {}'.format(token)}
-
-        response = self.client.post(ADD_ENTRY_URL, headers=headers,
-                                    data=json.dumps(self.entry_data), content_type='application/json')
-        result = json.loads(response.data.decode())
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(result["message"], "Entry has been published")
-
-    def test_get_single_entry(self):
-        response = self.logged_in_user()
-        token = json.loads(response.data.decode('utf-8'))['token']
-        headers = {'Authorization': 'Bearer {}'.format(token)}
-
-        response = self.client.post(ADD_ENTRY_URL, headers=headers,
-                                    data=json.dumps(self.entry_data), content_type='application/json')
-        self.assertEqual(response.status_code, 201)
-
-        response = self.client.get(GET_SINGLE_URL, headers=headers,
-                                   content_type='application/json')
-        result = json.loads(response.data.decode())
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(result["message"], "Entry found")
+class TestEntry(BaseTestClass):
 
     def test_get_all_entries(self):
-        response = self.logged_in_user()
-        token = json.loads(response.data.decode('utf-8'))['token']
-        headers = {'Authorization': 'Bearer {}'.format(token)}
-
-        response = self.client.post(ADD_ENTRY_URL, headers=headers,
-                                    data=json.dumps(self.entry_data), content_type='application/json')
-        self.assertEqual(response.status_code, 201)
-
-        response = self.client.get(GET_ALL_URL, headers=headers,
+        self.client.post('/api/v1/entries',
+                         data=json.dumps(self.entry),
+                         content_type='application/json')
+        response = self.client.get('/api/v1/entries',
+                                   data=json.dumps(self.entry),
                                    content_type='application/json')
-        entries = Entry.get(user_id=1)
-        entries = [entries[entry].view() for entry in entries]
-        result = json.loads(response.data.decode())
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(result['entries'], entries)
-        self.assertEqual(result["message"], "Entries found")
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Entries found successfully')
 
-    def test_modify_entry(self):
-        response = self.logged_in_user()
-        token = json.loads(response.data.decode('utf-8'))['token']
-        headers = {'Authorization': 'Bearer {}'.format(token)}
-
-        response = self.client.post(ADD_ENTRY_URL, headers=headers,
-                                    data=json.dumps(self.entry_data), content_type='application/json')
-        self.assertEqual(response.status_code, 201)
-
-        response = self.client.put(MODIFY_URL, headers=headers,
-                                   data=json.dumps(dict(title="Modified title")), content_type="application/json")
+    def test_get_entry_by_id(self):
+        self.client.post('/api/v1/entries',
+                         data=json.dumps(self.entry),
+                         content_type='application/json')
+        response = self.client.get('/api/v1/entries/1',
+                                   data=json.dumps(self.entry),
+                                   content_type='application/json')
         self.assertEqual(response.status_code, 200)
-        result = json.loads(response.data.decode())
-        self.assertEqual('Entry updated successfully', result['message'])
-        self.assertEqual('Modified title', result['new_entry']['title'])
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Entry retrieved successfully')
 
-    def test_cannot_add_entry_without_login(self):
-        """Test API cannot add entry if user is not logged in"""
+    def test_add_entry(self):
+        response = self.client.post('/api/v1/entries',
+                                    data=json.dumps(self.entry),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Entry successfully created')
 
-        response = self.client.post(ADD_ENTRY_URL,
-                                    data=json.dumps(self.entry_data), content_type='application/json')
-        result = json.loads(response.data.decode())
-        self.assertEqual(response.status_code, 401)
-        self.assertEqual(result["message"], "Please login first, your session might have expired")
+    def test_add_entry_without_title(self):
+        response = self.client.post('/api/v1/entries',
+                                    data=json.dumps(self.entry_without_title),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Title is required')
 
-    def test_cannot_get_single_entry_without_login(self):
-        """Test API cannot get a single diary entry without login"""
-        response = self.client.post(ADD_ENTRY_URL,
-                                    data=json.dumps(self.entry_data), content_type='application/json')
-
-        response = self.client.get(GET_SINGLE_URL,
-                                   data=json.dumps(self.entry_data), content_type='application/json')
-        self.assertEqual(response.status_code, 401)
-        result = json.loads(response.data.decode())
-        self.assertEqual(result["message"], "Please login first, your session might have expired")
-
-    def test_cannot_get_all_entries_without_login(self):
-        """Test API cannot get all diary entries without login"""
-        response = self.client.post(ADD_ENTRY_URL,
-                                    data=json.dumps(self.entry_data), content_type='application/json')
-
-        response = self.client.get(GET_ALL_URL,
-                                   data=json.dumps(self.entry_data), content_type='application/json')
-        self.assertEqual(response.status_code, 401)
+    def test_add_entry_without_entry(self):
+        response = self.client.post('/api/v1/entries',
+                                    data=json.dumps(self.entry_without_entry),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Entry is required')
 
     def test_delete_entry(self):
-        """Test API can delete a diary entry"""
-        response = self.logged_in_user()
-        token = json.loads(response.data.decode('utf-8'))['token']
-        headers = {'Authorization': 'Bearer {}'.format(token)}
+        self.client.post('/api/v1/entries',
+                         data=json.dumps(self.entry),
+                         content_type='application/json')
+        response = self.client.delete('/api/v1/entries/1',
+                                      content_type='application/json')
+        self.assertEqual(response.status_code, 204)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Entry deleted successfully')
 
-        response = self.client.post(ADD_ENTRY_URL, headers=headers,
-                                    data=json.dumps(self.entry_data), content_type='application/json')
-        self.assertEqual(response.status_code, 201)
-
-        response = self.client.delete(DELETE_URL, headers=headers,
-                                      data=json.dumps(self.entry_data), content_type='application/json')
+    def test_update_entry(self):
+        self.client.post('/api/v1/entries',
+                         data=json.dumps(self.entry),
+                         content_type='application/json')
+        response = self.client.put('/api/v1/entries/1',
+                                   data=json.dumps({
+                                       'title': 'Mimi',
+                                       'entry': 'Mimi na wewe, wewe na mimi'}),
+                                   content_type='application/json')
         self.assertEqual(response.status_code, 200)
+        data = json.loads(response.get_data())
+        self.assertEqual(data['message'], 'Updated successful')
