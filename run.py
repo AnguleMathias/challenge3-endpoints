@@ -1,4 +1,3 @@
-import os
 from app.app import app
 from instance.config import *
 
