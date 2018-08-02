@@ -3,11 +3,14 @@ language: python
 python:
   - "3.6.5"
 
-before_script:
-  - createdb testdb;
-
 install:
   - pip install -r requirements.txt
+
+service:
+  - postgresql
+
+before_script:
+  - createdb travis;
 
 script:
   - python3 -m unittest
