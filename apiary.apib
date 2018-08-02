@@ -1,80 +1,156 @@
 FORMAT: 1A
-HOST: http://polls.apiblueprint.org/
+HOST: https://diary-api-mathias.herokuapp.com/
 
-# mydiary
+# myDiary_mathias
 
-Polls is a simple API allowing consumers to view polls and vote in them.
+Embark on the journey of self-improvement towards better qualities of love, life and health. 
+Record your daily events, bullet journal, track your mood, secret, gratitude, and relive those moments in day-to-day activities.
+myDiary is your perfect journaling companion that keeps your private memories for a lifetime.
 
-## Questions Collection [/questions]
+## User Signup [/auth/signup]
 
-### List All Questions [GET]
-
-+ Response 200 (application/json)
-
-        [
-            {
-                "question": "Favourite programming language?",
-                "published_at": "2015-08-05T08:40:51.620Z",
-                "choices": [
-                    {
-                        "choice": "Swift",
-                        "votes": 2048
-                    }, {
-                        "choice": "Python",
-                        "votes": 1024
-                    }, {
-                        "choice": "Objective-C",
-                        "votes": 512
-                    }, {
-                        "choice": "Ruby",
-                        "votes": 256
-                    }
-                ]
-            }
-        ]
-
-### Create a New Question [POST]
-
-You may create your own question using this action. It takes a JSON
-object containing a question and a collection of answers in the
-form of choices.
+### Signup [POST]
 
 + Request (application/json)
 
-        {
-            "question": "Favourite programming language?",
-            "choices": [
-                "Swift",
-                "Python",
-                "Objective-C",
-                "Ruby"
-            ]
-        }
-
-+ Response 201 (application/json)
-
+            {
+                "email": "angule@gmail.com",
+                "username": "gudu",
+                "password": "qwerty"
+            }
+        
++ Response 201 (CREATED)
+    
     + Headers
 
-            Location: /questions/2
+            Content-Type: application/json
 
     + Body
 
             {
-                "question": "Favourite programming language?",
-                "published_at": "2015-08-05T08:40:51.620Z",
-                "choices": [
-                    {
-                        "choice": "Swift",
-                        "votes": 0
-                    }, {
-                        "choice": "Python",
-                        "votes": 0
-                    }, {
-                        "choice": "Objective-C",
-                        "votes": 0
-                    }, {
-                        "choice": "Ruby",
-                        "votes": 0
-                    }
-                ]
+                "message": "User created successfully"
             }
+
+## User Login [/auth/login]
+
+### Login [POST]
+
++ Request (application/json)
+    
+            {
+                "username": "gudu",
+                "password": "qwerty"
+            }
+
++ Response 200 (OK)
+
+    + Headers
+
+                Content-Type: application/json
+
+    + Body
+
+            {
+                "message": "Login successful",
+                "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmOTU1MWJhMi01NDc4LTQ5ODItOGE3NS00NGQxNmI5MThmYjUiLCJleHAiOjE1MzMyMDY5OTAsImZyZXNoIjpmYWxzZSwiaWF0IjoxNTMzMjA1MTkwLCJ0eXBlIjoiYWNjZXNzIiwibmJmIjoxNTMzMjA1MTkwLCJpZGVudGl0eSI6Imd1ZHUifQ.KkJ8OCjfXUc3wteIK2mkqjJ-B4avOVVch4ChFHpF0t8"   
+            }
+
+## Entry Creation [/api/v1/entries]
+
+### Add Entry [POST]
+
++ Request  (application/json)
+
+            {
+               "user_id": "1",
+                "title": "another day",
+                "entry": "presentation day"
+            }
+
++ Headers
+
+            Content-Type: application/json
+            Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmOTU1MWJhMi01NDc4LTQ5ODItOGE3NS00NGQxNmI5MThmYjUiLCJleHAiOjE1MzMyMDY5OTAsImZyZXNoIjpmYWxzZSwiaWF0IjoxNTMzMjA1MTkwLCJ0eXBlIjoiYWNjZXNzIiwibmJmIjoxNTMzMjA1MTkwLCJpZGVudGl0eSI6Imd1ZHUifQ.KkJ8OCjfXUc3wteIK2mkqjJ-B4avOVVch4ChFHpF0t8
+
++ Response 200 (OK)
+
+    + Headers
+
+            Content-Type: application/json
+            Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmOTU1MWJhMi01NDc4LTQ5ODItOGE3NS00NGQxNmI5MThmYjUiLCJleHAiOjE1MzMyMDY5OTAsImZyZXNoIjpmYWxzZSwiaWF0IjoxNTMzMjA1MTkwLCJ0eXBlIjoiYWNjZXNzIiwibmJmIjoxNTMzMjA1MTkwLCJpZGVudGl0eSI6Imd1ZHUifQ.KkJ8OCjfXUc3wteIK2mkqjJ-B4avOVVch4ChFHpF0t8
+
+    + Body
+
+            {
+                "message": "Entry successfully created"
+            }
+
+
+## Get All Entries [/api/v1/entries]
+
+### Get Entries [GET]
+
++ Headers
+
+            Content-Type: application/json
+            Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmOTU1MWJhMi01NDc4LTQ5ODItOGE3NS00NGQxNmI5MThmYjUiLCJleHAiOjE1MzMyMDY5OTAsImZyZXNoIjpmYWxzZSwiaWF0IjoxNTMzMjA1MTkwLCJ0eXBlIjoiYWNjZXNzIiwibmJmIjoxNTMzMjA1MTkwLCJpZGVudGl0eSI6Imd1ZHUifQ.KkJ8OCjfXUc3wteIK2mkqjJ-B4avOVVch4ChFHpF0t8
+
+
++ Response 200 (OK)
+            {
+                "Entries": [
+                    [
+                        1,
+                        1,
+                        "another day",
+                        "presentation day",
+                        null,
+                        null
+                    ]
+                ],
+                "message": "All entries found successfully"
+            }       
+
+## Edit Entry [/api/v1/entries/1]
+
+### Modify Entry [PUT]
+
++ Request  (application/json)
+
+            {  
+             "user_id": "1",
+            "title": "another day again",
+                "entry": "presentation day 2"
+            }
+
++ Headers
+
+                Content-Type: application/json
+                Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmOTU1MWJhMi01NDc4LTQ5ODItOGE3NS00NGQxNmI5MThmYjUiLCJleHAiOjE1MzMyMDY5OTAsImZyZXNoIjpmYWxzZSwiaWF0IjoxNTMzMjA1MTkwLCJ0eXBlIjoiYWNjZXNzIiwibmJmIjoxNTMzMjA1MTkwLCJpZGVudGl0eSI6Imd1ZHUifQ.KkJ8OCjfXUc3wteIK2mkqjJ-B4avOVVch4ChFHpF0t8
+
++ Response 200 (OK)
+
+      + Body
+            {
+                "Entry": [
+                    [
+                        1,
+                        1,
+                        "another day again",
+                        "presentation day 2",
+                        null,
+                        null
+                    ]
+                ],
+                "message": "Entry successfully updated"
+            }
+
+## Delete Entry Collection [/api/v1/entries/1]
+
+### Delete Entry [DELETE]
+
++ Response 204 (NO CONTENT)
+
+        {
+           "message": "Entry successfully deleted"
+        }
