@@ -5,10 +5,10 @@ from flask import Flask, jsonify, abort, request
 from flask_jwt_extended import jwt_required, JWTManager
 from .models import Database
 from instance.config import app_config
+from flask_cors import cross_origin
 
 app = Flask(__name__, instance_relative_config=True)
-#
-# app.config.from_object(app_config[os.getenv('APP_SETTINGS')])
+app.config.from_object(app_config[os.getenv('APP_SETTINGS')])
 app.config.from_pyfile('config.py')
 
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
@@ -17,6 +17,7 @@ jwt = JWTManager(app)
 
 @app.route('/api/v1/entries', methods=['GET', 'POST'])
 @jwt_required
+@cross_origin()
 def entries():
     if request.method == 'GET':
         Database().create_table_entry()
@@ -46,6 +47,7 @@ def entries():
 
 @app.route('/api/v1/entries/<int:entry_id>', methods=['GET', 'PUT', 'DELETE'])
 @jwt_required
+@cross_origin()
 def modify_entries(entry_id):
     if request.method == 'GET':
         Database().create_table_entry()
@@ -66,6 +68,7 @@ def modify_entries(entry_id):
 
 
 @app.route('/auth/signup', methods=['POST'])
+@cross_origin()
 def signup():
     """Creates a user"""
     if not request.json:
@@ -90,16 +93,17 @@ def signup():
         elif not re.match(valid_email, email):
             return jsonify({'message': 'Invalid email format.'}), 400
         user_data = {
-                'username': username,
-                'password': password,
-                'email': email
-            }
+            'username': username,
+            'password': password,
+            'email': email
+        }
 
         Database().create_table_user()
         return Database().signup(user_data)
 
 
 @app.route('/auth/login', methods=['POST'])
+@cross_origin()
 def login():
     if not request.json:
         abort(400)
