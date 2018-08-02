@@ -10,7 +10,7 @@ service:
   - postgresql
 
 before_script:
-  - createdb travis;
+  - createdb diary;
 
 script:
   - python3 -m unittest
