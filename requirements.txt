@@ -40,7 +40,6 @@ psycopg2-binary==2.7.5
 py==1.5.4
 pycparser==2.18
 pycrypto==2.6.1
-pycurl==7.43.0.1
 PyJWT==1.6.4
 pylint==1.9.2
 pytest==3.6.3

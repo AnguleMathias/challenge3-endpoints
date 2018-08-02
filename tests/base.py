@@ -3,17 +3,21 @@ import unittest
 from unittest import TestCase
 from app.app import app
 from app.models import Database
+from instance.config import app_config
+
+app.config.from_object(app_config["testing"])
 
 
 class BaseTestClass(TestCase):
 
     def setUp(self):
-        self.app = app
-        self.client = self.app.test_client()
+        Database().create_table_user()
+        Database().create_table_entry()
+        self.client = app.test_client()
 
         #   entry case
         self.entry = {
-
+            'user_id': '1',
             'title': 'Day 1',
             'entry': 'Wrote an awesome blog'
         }
@@ -70,28 +74,22 @@ class BaseTestClass(TestCase):
             "password": "angule1234"
         }
 
-    def logged_in_user(self):
-        self.client.post('/auth/signup',
-                         data=json.dumps(self.user),
-                         headers={'content-type': 'application/json'})
-        res = self.client.post('/auth/login',
-                               data=json.dumps(self.user),
-                               headers={'content-type': 'application/json'})
-        return res
-
     def signup_user(self):
-        return self.client.post('/auth/signup',
-                                data=json.dumps(self.user),
-                                headers={'content-type': 'application/json'})
+        response = self.client.post('/auth/signup',
+                                    data=json.dumps(self.user),
+                                    content_type='application/json')
+        return response
 
     def login_user(self):
-        return self.client.post('/auth/login',
-                                data=json.dumps(self.user),
-                                headers={'content-type': 'application/json'})
+        response = self.client.post('/auth/login',
+                                    data=json.dumps(self.user),
+                                    content_type= 'application/json')
+        return response
 
     def tearDown(self):
         Database().drop_table_user()
         Database().drop_table_entry()
 
-    if __name__ == '__main__':
-        unittest.main()
+
+if __name__ == '__main__':
+    unittest.main()

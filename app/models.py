@@ -1,3 +1,4 @@
+from flask_bcrypt import Bcrypt
 import os
 from datetime import timedelta
 from flask import Flask, jsonify, request
@@ -7,8 +8,9 @@ from flask_jwt_extended import (
 
 app = Flask(__name__, instance_relative_config=True)
 
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
 jwt = JWTManager(app)
+
+bcrypt = Bcrypt(app)
 
 
 class Database:
@@ -75,29 +77,33 @@ class Database:
                                 VALUES (%(username)s, %(password)s, %(email)s)""", user_data)
             self.conn.commit()
             return jsonify({'message': 'User created successfully'}), 201
+        self.cursor.close()
+        self.conn.close()
         return jsonify({'message': 'Username already exists'}), 400
 
     def login(self, username, password):
-        credentials = request.get_json()
-        password = (credentials['password'])
-        username = (credentials['username'])
-
         self.cursor.execute("""SELECT password, username FROM users WHERE username = (%s)""",
                             (username,))
         data = self.cursor.fetchone()
         if data:
             if not data[1] == username:
-                return jsonify({'message': 'Username is invalid'}), 400
-            if data[0] == password:
+                return jsonify({'message': 'User is invalid'}), 400
+            if bcrypt.check_password_hash(data[0], password):
                 expiration = timedelta(minutes=30)
                 access_token = create_access_token(identity=username, expires_delta=expiration)
                 return jsonify({'token': access_token, 'message': 'Login successful'}), 200
-        return jsonify({'message': 'password is invalid'}), 400
+            else:
+                return jsonify({'message': 'Password is invalid'}), 400
+        self.cursor.close()
+        self.conn.close()
+        return jsonify({'message': 'Username is invalid'}), 400
 
     def add_entry(self, entry_data):
         self.cursor.execute("""INSERT INTO entries (user_id, title, entry)
                             VALUES (%(user_id)s,%(title)s, %(entry)s)""", entry_data)
         self.conn.commit()
+        self.cursor.close()
+        self.conn.close()
         return jsonify({'message': 'Entry successfully created'}), 200
 
     def get_one_entry(self, entry_id):
@@ -105,6 +111,8 @@ class Database:
         data = self.cursor.fetchall()
         if data:
             return jsonify({'Entry': data, 'message': 'Entry successfully found'}), 200
+        self.cursor.close()
+        self.conn.close()
         return jsonify({'message': 'Entry not found'})
 
     def get_all_entries(self):
@@ -112,6 +120,8 @@ class Database:
         data = self.cursor.fetchall()
         if data:
             return jsonify({'Entries': data, 'message': 'All entries found successfully'})
+        self.cursor.close()
+        self.conn.close()
         return jsonify({'message': 'No entries found'})
 
     def update_entry(self, entry_id, entry_data):
@@ -124,6 +134,8 @@ class Database:
             self.cursor.execute("""SELECT * FROM entries WHERE entry_id = %s""", (entry_id,))
             updated_data = self.cursor.fetchall()
             return jsonify({'Entry': updated_data, 'message': 'Entry successfully updated'}), 200
+        self.cursor.close()
+        self.conn.close()
         return jsonify({'message': 'Entry not found'})
 
     def delete_entry(self, entry_id):
@@ -133,6 +145,8 @@ class Database:
             self.cursor.execute("""DELETE FROM entries WHERE entry_id = %s""", (entry_id,))
             self.conn.commit()
             return jsonify({'message': 'Entry successfully deleted'}), 204
+        self.cursor.close()
+        self.conn.close()
         return jsonify({'message': 'Entry not found.'}), 400
 
 #
