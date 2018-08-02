@@ -15,6 +15,19 @@ app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
 jwt = JWTManager(app)
 
 
+@app.route('/', methods=['GET'])
+def index():
+    """ root """
+    if request.method == 'GET':
+        # the following is a welcoming message (at the landing page)
+        welcome_message = {"Message": [{
+            "Welcome": "Welcome to my Diary API"
+        }]}
+
+        response = {"status": "success", "Message": welcome_message}
+        return response, 200
+
+
 @app.route('/api/v1/entries', methods=['GET', 'POST'])
 @jwt_required
 @cross_origin()

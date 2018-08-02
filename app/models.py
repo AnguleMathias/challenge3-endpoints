@@ -2,7 +2,6 @@ import os
 from datetime import timedelta
 from flask import Flask, jsonify, request
 import psycopg2
-from flask_bcrypt import Bcrypt
 from flask_jwt_extended import (
     JWTManager, create_access_token)
 
@@ -10,8 +9,6 @@ app = Flask(__name__, instance_relative_config=True)
 
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
 jwt = JWTManager(app)
-
-bcrypt = Bcrypt(app)
 
 
 class Database:
