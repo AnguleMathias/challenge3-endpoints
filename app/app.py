@@ -15,7 +15,7 @@ app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET')
 jwt = JWTManager(app)
 
 
-@app.route('/', methods=['GET'])
+@app.route('/api/v1', methods=['GET'])
 def index():
     """ root """
     if request.method == 'GET':
