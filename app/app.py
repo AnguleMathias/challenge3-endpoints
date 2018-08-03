@@ -6,6 +6,7 @@ from flask_bcrypt import Bcrypt
 from .models import Database
 from flask_cors import CORS, cross_origin
 
+
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_pyfile('config.py')
 

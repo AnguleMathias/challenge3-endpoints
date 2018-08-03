@@ -25,7 +25,6 @@ Click here for [Documentation](https://mydiary14.docs.apiary.io/#)
 |-----------------------------------|---------------------------------------|
 | POST      /auth/signup    	    | Creates a user                    	|
 | POST      /auth/login     	    | Logs a user in                    	|
-| GET       /auth/logout     	    | Logs a user out                   	|
 | POST      /api/v1/entries/   	    | Create a new entry                  	|
 | GET       /api/v1/entries/        | List all the created entries       	|
 | GET       /api/v1/entries/<entry_id>| Get single entry                   	|
@@ -79,7 +78,8 @@ pip install -r requirements.txt
 
 * Export the ```APP_SETTINGS``` environment variable:
 
-        $ export APP_SETTINGS=development
+        $ source .env
+
         $ python run.py
         
         > Running on http://127.0.0.1:5000/
