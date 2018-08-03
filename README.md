@@ -14,7 +14,6 @@
 [![Build Status](https://travis-ci.org/AnguleMathias/challenge3-endpoints.svg?branch=develop)](https://travis-ci.org/AnguleMathias/challenge3-endpoints)
 [![Coverage Status](https://coveralls.io/repos/github/AnguleMathias/challenge3-endpoints/badge.svg)](https://coveralls.io/github/AnguleMathias/challenge3-endpoints)
 [![Maintainability](https://api.codeclimate.com/v1/badges/64621a9336ac916cf6a4/maintainability)](https://codeclimate.com/github/AnguleMathias/challenge3-endpoints/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/64621a9336ac916cf6a4/test_coverage)](https://codeclimate.com/github/AnguleMathias/challenge3-endpoints/test_coverage)
 
 ## Endpoints
 
