@@ -52,3 +52,4 @@ SecretStorage==2.3.1
 virtualenv==16.0.0
 Werkzeug==0.14.1
 wrapt==1.10.11
+coveralls
