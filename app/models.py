@@ -45,8 +45,6 @@ class Database:
                                 user_id INTEGER NOT NULL,
                                 title VARCHAR NOT NULL,
                                 entry VARCHAR NOT NULL,
-                                created_at timestamp,
-                                last_modified timestamp,
                                 PRIMARY KEY (user_id , id),
                                 FOREIGN KEY (user_id) REFERENCES users (id));
                                 """)
