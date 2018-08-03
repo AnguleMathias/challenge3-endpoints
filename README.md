@@ -9,6 +9,10 @@
   * A user should be able to view all diary entries.
   * A user should be able to modify an existing diary entry.
   
+## API Documentation
+
+Click here for [Documentation](https://mydiary14.docs.apiary.io/#)
+  
 ## Badges
 
 [![Build Status](https://travis-ci.org/AnguleMathias/challenge3-endpoints.svg?branch=develop)](https://travis-ci.org/AnguleMathias/challenge3-endpoints)
@@ -17,15 +21,16 @@
 
 ## Endpoints
 
-| Endpoint             	| Functionality                     	|
-|----------------------	|-----------------------------------	|
-| POST /auth/login     	| Logs a user in                    	|
-| GET /auth/logout     	| Logs a user out                   	|
-| POST /entries/   	    | Create a new entry                  	|
-| GET /entries/     	| List all the created entries       	|
-| GET /entries/<id>    	| Get single entry                    	|
-| PUT /entries/     	| Update entry                         	|
-| DELETE /entries/<id> 	| Delete this single entry          	|
+| Endpoint             	            | Functionality                     	|
+|-----------------------------------|---------------------------------------|
+| POST      /auth/signup    	    | Creates a user                    	|
+| POST      /auth/login     	    | Logs a user in                    	|
+| GET       /auth/logout     	    | Logs a user out                   	|
+| POST      /api/v1/entries/   	    | Create a new entry                  	|
+| GET       /api/v1/entries/        | List all the created entries       	|
+| GET       /api/v1/entries/<entry_id>| Get single entry                   	|
+| PUT       /api/v1/entries/<entry_id>| Update an entry                    	|
+| DELETE    /api/v1/entries/<entry_id>| Delete this single entry          	|
   
   
 
